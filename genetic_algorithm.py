@@ -12,7 +12,7 @@ from operators import (
     SELECTION_OPERATORS,
 )
 from tsp_problem import TSP
-from utils import total_route_length
+from utils import total_route_length, two_opt
 
 
 @dataclass
@@ -36,6 +36,7 @@ class GeneticAlgorithm:
         elite_ratio: float = 0.05,
         tournament_k: int = 5,
         seed: int | None = None,
+        two_opt_prob: float = 0.2,
     ) -> None:
         self.problem = problem
         self.population_size = population_size
@@ -49,6 +50,7 @@ class GeneticAlgorithm:
         self.tournament_k = tournament_k
         self.rng = random.Random(seed)
         self.distances = problem.distances
+        self.two_opt_prob = two_opt_prob
         if self.distances is None:
             raise ValueError("Problem distances are not initialized")
         self.selection_fn = SELECTION_OPERATORS[selection_method]
@@ -75,8 +77,17 @@ class GeneticAlgorithm:
     def _crossover(self, parent1: List[int], parent2: List[int]) -> Tuple[List[int], List[int]]:
         return self.crossover_fn(parent1, parent2, self.rng)
 
-    def _mutate(self, individual: List[int]) -> List[int]:
+    def _mutate(self, individual: List[int], generation: int) -> List[int]:
+        if self.mutation_method == "inversion":
+            return self.mutation_fn(individual, self.rng, generation, self.generations)
         return self.mutation_fn(individual, self.rng)
+
+    def _maybe_two_opt(self, individual: List[int]) -> List[int]:
+        if self.two_opt_prob <= 0:
+            return individual
+        if self.rng.random() < self.two_opt_prob:
+            return two_opt(individual, self.distances)
+        return individual
 
     def run(self, callback: Callable[[int, float, List[int]], None] | None = None) -> GAResult:
         population = self._initial_population()
@@ -105,9 +116,12 @@ class GeneticAlgorithm:
                     child1, child2 = parent1.copy(), parent2.copy()
 
                 if self.rng.random() < self.mutation_prob:
-                    child1 = self._mutate(child1)
+                    child1 = self._mutate(child1, generation)
                 if self.rng.random() < self.mutation_prob:
-                    child2 = self._mutate(child2)
+                    child2 = self._mutate(child2, generation)
+
+                child1 = self._maybe_two_opt(child1)
+                child2 = self._maybe_two_opt(child2)
 
                 new_population.extend([child1, child2])
 

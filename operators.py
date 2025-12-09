@@ -83,7 +83,20 @@ def pmx_crossover(p1: Sequence[int], p2: Sequence[int], rng: random.Random) -> T
         for i in range(size):
             if child[i] is None:
                 gene = B[i]
-                while gene in mapping: gene = mapping[gene]
+                visited = set()
+
+                # 🔒 zabezpieczenie przed zapętlaniem w cyklicznym mapowaniu
+                while gene in mapping and gene not in visited:
+                    visited.add(gene)
+                    gene = mapping[gene]
+
+                # jeśli cykl nie pozwolił na wyjście poza mapowanie, wybierz pierwszy wolny gen
+                if gene in mapping:
+                    for candidate in B:
+                        if candidate not in child:
+                            gene = candidate
+                            break
+
                 child[i] = gene
         return child
 
