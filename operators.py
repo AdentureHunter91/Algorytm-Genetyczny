@@ -32,15 +32,15 @@ def roulette_wheel_selection(population: List[List[int]], fitnesses: List[float]
 #  HELPER – zakres z marginesem
 # ===============================
 
-def get_segment_range(size: int, min_seg: int = 3) -> Tuple[int, int]:
+def get_segment_range(size: int, rng: random.Random, min_seg: int = 3) -> Tuple[int, int]:
     """
     Losuje odcinek [a,b) z gwarancją:
       – min. segmentu = min_seg
       – nie zaczyna na 0
       – nie kończy na size-1
     """
-    a = random.randint(1, size - min_seg - 1)
-    b = random.randint(a + min_seg, size - 1)
+    a = rng.randint(1, size - min_seg - 1)
+    b = rng.randint(a + min_seg, size - 1)
     return a, b
 
 
@@ -50,7 +50,7 @@ def get_segment_range(size: int, min_seg: int = 3) -> Tuple[int, int]:
 
 def order_crossover(p1: Sequence[int], p2: Sequence[int], rng: random.Random) -> Tuple[List[int], List[int]]:
     size = len(p1)
-    a, b = get_segment_range(size, min_seg=3)
+    a, b = get_segment_range(size, rng, min_seg=3)
 
     def ox(A, B):
         child = [None] * size
@@ -73,7 +73,7 @@ def order_crossover(p1: Sequence[int], p2: Sequence[int], rng: random.Random) ->
 
 def pmx_crossover(p1: Sequence[int], p2: Sequence[int], rng: random.Random) -> Tuple[List[int], List[int]]:
     size = len(p1)
-    a, b = get_segment_range(size, min_seg=3)
+    a, b = get_segment_range(size, rng, min_seg=3)
 
     def pmx(A, B):
         child = [None] * size
@@ -84,19 +84,14 @@ def pmx_crossover(p1: Sequence[int], p2: Sequence[int], rng: random.Random) -> T
             if child[i] is None:
                 gene = B[i]
                 visited = set()
-
-                # 🔒 zabezpieczenie przed zapętlaniem w cyklicznym mapowaniu
                 while gene in mapping and gene not in visited:
                     visited.add(gene)
                     gene = mapping[gene]
-
-                # jeśli cykl nie pozwolił na wyjście poza mapowanie, wybierz pierwszy wolny gen
                 if gene in mapping:
                     for candidate in B:
                         if candidate not in child:
                             gene = candidate
                             break
-
                 child[i] = gene
         return child
 
@@ -108,7 +103,7 @@ def pmx_crossover(p1: Sequence[int], p2: Sequence[int], rng: random.Random) -> T
 # ===============================
 def pmx_strict(p1, p2, rng):
     size = len(p1)
-    start, end = get_segment_range(size, min_seg=3)
+    start, end = get_segment_range(size, rng, min_seg=3)
 
     def create_child(A, B):
         child = [-1] * size
@@ -165,8 +160,8 @@ def inversion_mutation(ind: List[int], rng: random.Random, gen: int = 0, generat
     decay = gen / generations
     mut_rate = base * (1 - decay) + 0.05  # nigdy nie spada do zera
 
-    if random.random() < mut_rate:
-        a, b = get_segment_range(size, min_seg=3)
+    if rng.random() < mut_rate:
+        a, b = get_segment_range(size, rng, min_seg=3)
         c = ind.copy()
         c[a:b] = reversed(c[a:b])
         return c
