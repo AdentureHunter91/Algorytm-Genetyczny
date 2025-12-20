@@ -28,6 +28,12 @@ selection_method = st.sidebar.selectbox("Metoda selekcji", ["tournament", "roule
 crossover_method = st.sidebar.selectbox("Metoda krzyżowania", ["ox", "pmx"])
 mutation_method = st.sidebar.selectbox("Metoda mutacji", ["swap", "inversion"])
 elite_ratio = st.sidebar.slider("Rozmiar elity (%)", min_value=0, max_value=20, value=5, step=1) / 100
+two_opt_enabled = st.sidebar.checkbox("Optymalizacja 2-opt", value=True)
+two_opt_prob = 0.0
+if two_opt_enabled:
+    two_opt_prob = st.sidebar.slider(
+        "Prawdopodobieństwo 2-opt", min_value=0.0, max_value=1.0, value=0.2, step=0.05
+    )
 start = st.sidebar.button("START")
 
 status_text = st.empty()
@@ -60,6 +66,7 @@ if start:
             mutation_method=mutation_method,
             elite_ratio=elite_ratio,
             seed=42,
+            two_opt_prob=two_opt_prob,
         )
 
         start_time = time.time()
