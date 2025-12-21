@@ -78,21 +78,21 @@ def pmx_crossover(p1: Sequence[int], p2: Sequence[int], rng: random.Random) -> T
     def pmx(A, B):
         child = [None] * size
         child[a:b] = A[a:b]
-        mapping = {B[i]: A[i] for i in range(a, b)}
+        b_index = {gene: idx for idx, gene in enumerate(B)}
+
+        for i in range(a, b):
+            gene = B[i]
+            if gene in child:
+                continue
+            pos = i
+            while child[pos] is not None:
+                mapped = A[pos]
+                pos = b_index[mapped]
+            child[pos] = gene
 
         for i in range(size):
             if child[i] is None:
-                gene = B[i]
-                visited = set()
-                while gene in mapping and gene not in visited:
-                    visited.add(gene)
-                    gene = mapping[gene]
-                if gene in mapping:
-                    for candidate in B:
-                        if candidate not in child:
-                            gene = candidate
-                            break
-                child[i] = gene
+                child[i] = B[i]
         return child
 
     return pmx(p1, p2), pmx(p2, p1)
