@@ -99,7 +99,7 @@ def pmx_crossover(p1: Sequence[int], p2: Sequence[int], rng: random.Random) -> T
 
 
 # ===============================
-#   CROSSOVER – PMX STRICT (pro)
+#   CROSSOVER – PMX
 # ===============================
 def pmx_strict(p1, p2, rng):
     size = len(p1)
@@ -109,13 +109,13 @@ def pmx_strict(p1, p2, rng):
         child = [-1] * size
         child[start:end] = A[start:end]
 
-        MAX_HOPS = size * 3  # 🔥 zabezpiecza przed nieskończoną pętlą
+        MAX_HOPS = size * 3  #  zabezpiecza przed nieskończoną pętlą
 
         for i in list(range(start)) + list(range(end, size)):
             val = B[i]
             hops = 0
 
-            # 🔥 poprawione mapowanie — bez ryzyka .index() crash
+            #  poprawione mapowanie — bez ryzyka .index() crash
             while val in child[start:end] and hops < MAX_HOPS:
                 try:
                     idx = A.index(val)       # zamiast A[start:end] → pełne mapowanie
