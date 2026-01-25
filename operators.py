@@ -14,18 +14,26 @@ def tournament_selection(population: List[List[int]], fitnesses: List[float], k:
     return best[0]
 
 
-def roulette_wheel_selection(population: List[List[int]], fitnesses: List[float], rng: random.Random) -> List[int]:
-    """Ruletka – im lepszy (mniejszy dystans), tym większa szansa wyboru."""
-    max_fit = max(fitnesses)
-    weights = [max_fit - f + 1e-9 for f in fitnesses]
+def roulette_wheel_selection(population, fitnesses, rng):
+    # Ruletka dla minimalizacji: zamiast robić wagi z dystansu (które mogą być prawie równe),
+    # robimy ranking – najlepszy ma największą szansę.
+    ranked = sorted(zip(population, fitnesses), key=lambda x: x[1])
+    n = len(ranked)
+
+    # wagi: najlepszy ma największą wagę
+    weights = list(range(n, 0, -1))  # n, n-1, ..., 1
     total = sum(weights)
+    # Losujemy punkt na "kole ruletki" (0..total)
     pick = rng.random() * total
+
+    # Przechodzimy po osobnikach i sumujemy wagi aż przekroczymy pick
     curr = 0.0
-    for ind, w in zip(population, weights):
+    for (ind, _), w in zip(ranked, weights):
         curr += w
         if curr >= pick:
             return ind
-    return population[-1]
+        #awaryjnie poniżej
+    return ranked[-1][0]
 
 
 # ===============================
@@ -155,17 +163,19 @@ def swap_mutation(ind: List[int], rng: random.Random) -> List[int]:
 def inversion_mutation(ind: List[int], rng: random.Random, gen: int = 0, generations: int = 1000) -> List[int]:
     size = len(ind)
 
-    # siła spada wraz z generacjami
-    base = 0.25                         # agresywna na starcie
+    # siła spada wraz z generacjami (tu potraktujemy to jako minimalną długość segmentu)
+    base = 0.25
     decay = gen / generations
-    mut_rate = base * (1 - decay) + 0.05  # nigdy nie spada do zera
+    strength = base * (1 - decay) + 0.05  # 0.30 -> 0.05
 
-    if rng.random() < mut_rate:
-        a, b = get_segment_range(size, rng, min_seg=3)
-        c = ind.copy()
-        c[a:b] = reversed(c[a:b])
-        return c
-    return ind.copy()
+    # mapujemy strength na minimalny segment: na starcie większy, później mniejszy
+    # (można dostroić)
+    min_seg = max(3, int(size * strength))
+
+    a, b = get_segment_range(size, rng, min_seg=min_seg)
+    c = ind.copy()
+    c[a:b] = reversed(c[a:b])
+    return c
 
 
 # ===============================

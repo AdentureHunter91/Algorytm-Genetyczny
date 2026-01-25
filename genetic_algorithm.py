@@ -94,7 +94,7 @@ class GeneticAlgorithm:
         fitnesses = [self._fitness(ind) for ind in population]
         history: List[float] = []
 
-        elite_count = max(1, int(self.population_size * self.elite_ratio))
+        elite_count = max(0, int(self.population_size * self.elite_ratio))
 
         for generation in range(self.generations):
             combined = list(zip(population, fitnesses))

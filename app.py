@@ -20,7 +20,7 @@ st.title("Problem komiwojażera - Algorytm genetyczny")
 
 st.sidebar.header("Parametry")
 pop_size = st.sidebar.slider("Rozmiar populacji", min_value=50, max_value=500, value=150, step=10)
-generations = st.sidebar.slider("Liczba generacji", min_value=100, max_value=2000, value=400, step=50)
+generations = st.sidebar.slider("Liczba generacji", min_value=100, max_value=2000, value=600, step=50)
 mutation_prob = st.sidebar.slider("Prawdopodobieństwo mutacji", min_value=0.01, max_value=0.2, value=0.05, step=0.01)
 crossover_prob = st.sidebar.slider("Prawdopodobieństwo krzyżowania", min_value=0.5, max_value=1.0, value=0.9, step=0.05)
 dataset_name = st.sidebar.selectbox("Dataset", list(DATASETS.keys()))
@@ -65,6 +65,7 @@ if start:
             crossover_method=crossover_method,
             mutation_method=mutation_method,
             elite_ratio=elite_ratio,
+           # seed = int(time.time() * 1000),
             seed=42,
             two_opt_prob=two_opt_prob,
         )
